@@ -16,10 +16,10 @@ User Register
 User Login
 
 Front End For this API can be found at
-
+Front End Hosting coming soon
 https://github.com/wilforlan/python-social-frontend
 
-Hosted On Heroku
+API Hosted On Heroku
 
 https://python-social.herokuapp.com
 
