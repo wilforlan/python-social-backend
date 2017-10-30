@@ -9,9 +9,12 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 from custom.JSONEncoder import JSONEncoder, render_json
+from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
-
+CORS(app)
+csrf = CSRFProtect(app)
 # Work on using ENV file
 # file = open(".env", "r")
 # DOTENV = file.read()
@@ -23,8 +26,12 @@ jwt = JWTManager(app)
 app.register_blueprint(auth_blueprint, url_prefix='/auth')
 app.register_blueprint(user_blueprint, url_prefix='/users')
 
+#Exempt Blueprints to Allow Ajax Requests without Token
+csrf.exempt(auth_blueprint)
+csrf.exempt(user_blueprint)
 
-@app.route('/', methods=['GET'])
+@csrf.exempt
+@app.route('/', methods=['GET','POST'])
 def index():
     return "You are all set"
 

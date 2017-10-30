@@ -168,9 +168,9 @@ def get_user_newsfeed(user_id):
         if 'following' in current_user:
             current_user_follwing = current_user_json['following']
         else:
-            return jsonify(status="error", msg="You do not have any followers, Follow Someone to see their story")
+            return jsonify(status="success", msg="You do not have any followers, Follow Someone to see their story",payload=[])
         if len(current_user_follwing) < 1:
-            return jsonify(status="error", msg="You do not have any followers, Follow Someone to see their story")
+            return jsonify(status="success", msg="You do not have any followers, Follow Someone to see their story",payload=[])
         mapped_user_following = list(map((lambda id: ObjectId(id)), current_user_follwing))
 
         story = Stories.aggregate([

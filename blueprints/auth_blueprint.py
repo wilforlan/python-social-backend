@@ -15,30 +15,30 @@ auth_blueprint = Blueprint('auth_blueprint', __name__)
 @auth_blueprint.route("/login", methods=['POST'])
 def login():
     UserObject = {
-        '$or': [ { 'username': { '$eq': request.form['index'] } }, { 'email': request.form['index'] } ],
-        'password' :hashlib.sha224(request.form['password']).hexdigest()
+        '$or': [ { 'username': { '$eq': request.json.get('index') } }, { 'email': request.json.get('index') } ],
+        'password' :hashlib.sha224(request.json.get('password')).hexdigest()
     }
 
-    # try:
-    user = Users.find_one(UserObject)
-    if user:
-        access_token = create_access_token(identity=render_json(user), expires_delta=timedelta(days=2, hours=23, minutes=59, seconds=59, microseconds=999999))
-        return jsonify(status='success', payload=render_json(user), access_token=access_token), 200
-    else:
-        return jsonify(status='error', message='Account not Found')
-    # except:
-    #     return jsonify(status='error', message='An Error Occured'), 500
+    try:
+        user = Users.find_one(UserObject)
+        if user:
+            access_token = create_access_token(identity=render_json(user), expires_delta=timedelta(days=2, hours=23, minutes=59, seconds=59, microseconds=999999))
+            return jsonify(status='success', payload=render_json(user), access_token=access_token), 200
+        else:
+            return jsonify(status='error', message='Account not Found')
+    except:
+        return jsonify(status='error', message='An Error Occured'), 500
 
 @auth_blueprint.route("/register", methods=['POST'])
 def register():
     UserObject = {
-        'username' : request.form['username'],
-        'email' : request.form['email'],
-        'firstname' : request.form['firstname'],
-        'lastname' : request.form['lastname'],
-        'facebook_id' : request.form['facebook_id'],
-        'twitter_id' : request.form['twitter_id'],
-        'password' :hashlib.sha224(request.form['password']).hexdigest()
+        'username' : request.json.get('username'),
+        'email' : request.json.get('email'),
+        'firstname' : request.json.get('firstname'),
+        'lastname' : request.json.get('lastname'),
+        'facebook_id' : request.json.get('facebook_id'),
+        'twitter_id' : request.json.get('twitter_id'),
+        'password' :hashlib.sha224(request.json.get('password')).hexdigest()
     }
 
     try :
