@@ -44,7 +44,7 @@ def register():
     try :
         new_user = Users.insert_one(UserObject)
         return jsonify({'status': 'success', 'message':'Account created successfully'})
-    except pymongo.errors.DuplicateKeyError , err:
+    except:
         return jsonify({'status': 'error', 'message': "One Or More Record Exists"})
 
 @auth_blueprint.route("/clean_db")
