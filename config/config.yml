@@ -1,0 +1,14 @@
+COMMON: &common
+  SECRET_KEY: djnkja23297&^289789-702
+    
+DEVELOPMENT: &development
+  <<: *common
+  DEBUG: True
+  
+STAGING: &staging
+  <<: *common
+  SECRET_KEY: somesecurekey
+  
+PRODUCTION: &production
+  <<: *common
+  SECRET_KEY: 398djknfpon
