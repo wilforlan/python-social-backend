@@ -38,7 +38,7 @@ def register():
         'lastname' : request.json.get('lastname'),
         'facebook_id' : request.json.get('facebook_id'),
         'twitter_id' : request.json.get('twitter_id'),
-        'password' :hashlib.sha224(request.json.get('password')).hexdigest()
+        'password' :hashlib.sha224(request.json.get('password').encode('utf-8')).hexdigest()
     }
 
     try :
