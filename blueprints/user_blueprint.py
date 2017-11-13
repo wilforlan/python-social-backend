@@ -41,14 +41,14 @@ def add_story():
     # story_type = request.form['story_type'] if request.form['story_type'] else 'text'
     story_type = 'text'
     StoryObject = {
-        'user_id' : ObjectId(request.form['user_id']),
+        'user_id' : ObjectId(request.json.get('user_id')),
         'created_on' : date.today().isoformat(),
         'story_type' : 'text',
         'updated_on' : date.today().isoformat(),
         'deleted' : False
     }
     # if story_type == 'text':
-    StoryObject['story_content'] = request.form['story_text']
+    StoryObject['story_content'] = request.json.get('story_text')
     # else:
     #     return jsonify(status='error', msg="Only story of type text is supported "), 500
     try:
@@ -226,6 +226,67 @@ def get_user_newsfeed(user_id):
     except:
         return jsonify(status='error', msg="An Error Occured"), 500
 
+
+@user_blueprint.route("/<user_id>/mynewsfeed", methods=['GET'])
+@jwt_required
+def get_my_newsfeed(user_id):
+    limit = int(request.args.get('limit'))
+    page = int(request.args.get('page'))
+    offset = (page - 1) * limit
+    try:
+        story = Stories.aggregate([
+            {
+                '$match' : {
+                    '$and': [ 
+                        {'user_id': {'$eq': ObjectId(user_id) } }, 
+                    ]
+                }
+            },
+            {
+                '$lookup': {
+                    'from': "users",
+                    'localField': "user_id",
+                    'foreignField': "_id",
+                    'as': "user_details"
+                }
+            },
+            {
+                '$lookup': {
+                    'from': "users",
+                    'localField': "likes",
+                    'foreignField': "_id",
+                    'as': "likers"
+                }
+            },
+            {
+                '$lookup': {
+                    'from': "users",
+                    'localField': "dislikes",
+                    'foreignField': "_id",
+                    'as': "dislikers"
+                }
+            },
+            {
+                '$sort' : { 
+                    'created_on' : -1
+                }
+            },
+            { 
+                '$limit' : limit 
+            },
+            {
+                '$skip' : offset
+            }
+        ])
+        # pages = range(1, Stories.count() / limit + 1)
+        # print pages
+        if story:
+            return jsonify(status='success', payload=dumps(story)), 200
+        else:
+            return jsonify(status='error', msg="No Story Available"), 404
+    except:
+        return jsonify(status='error', msg="An Error Occured"), 500
+
 @user_blueprint.route("/<user_id>/like/<story_id>", methods=['PUT', 'POST'])
 @jwt_required
 def user_like_story(user_id, story_id):
@@ -282,15 +343,50 @@ def user_unfollow_request(user_id, to_unfollow):
     #     return jsonify(status='error', msg="An Error Occured"), 500
 
 
-@user_blueprint.route("/clear_story", methods=['GET'])
-def clear_all_user_story():
-    Stories.drop()
-    return jsonify({'status': 'success', 'payload': "null"})
+# @user_blueprint.route("/clear_story", methods=['GET'])
+# def clear_all_user_story():
+#     Stories.drop()
+#     return jsonify({'status': 'success', 'payload': "null"})
 
-@user_blueprint.route("/find_all_users", methods=['GET'])
-def find_all_user():
-    users = Users.find()
-    return jsonify({'status': 'success', 'payload': dumps(users)})
+@user_blueprint.route("/find_friends/<user_id>", methods=['GET'])
+@jwt_required
+def friends_finder(user_id):
+    limit = int(request.args.get('limit'))
+    page = int(request.args.get('page'))
+    offset = (page - 1) * limit
+    try:
+        current_user = Users.find_one({'_id' : ObjectId(user_id)})
+        if 'following' not in current_user:
+            current_user['following'] = []
+
+        users = Users.aggregate([
+                {
+                    '$match' : {
+                        '$and': [ 
+                            {'_id': {'$ne': ObjectId(user_id) } },
+                            {'_id': {'$nin': current_user['following'] } }, 
+                        ]
+                    }
+                },
+                { 
+                    '$limit' : limit 
+                },
+                {
+                    '$skip' : offset
+                }
+        ])
+        if users:
+            return jsonify(status='success', payload=dumps(users)), 200
+        else:
+            return jsonify(status='error', msg="No Story Available"), 404
+    except:
+        return jsonify(status='error', msg="An Error Occured"), 500
+
+
+# @user_blueprint.route("/find_all_users", methods=['GET'])
+# def find_all_user():
+#     users = Users.find()
+#     return jsonify({'status': 'success', 'payload': dumps(users)})
 
 
 
